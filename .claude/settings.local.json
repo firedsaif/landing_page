@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/fired/.claude/**)",
+      "Bash(gh auth:*)",
+      "Bash(curl -sL \"https://api.github.com/repos/anthropics/skills/git/trees/main?recursive=1\")",
+      "Bash(mkdir -p ~/.claude/skills/frontend-design)",
+      "Bash(curl -sL \"https://raw.githubusercontent.com/anthropics/skills/main/skills/frontend-design/SKILL.md\" -o ~/.claude/skills/frontend-design/SKILL.md)",
+      "Bash(curl -sL \"https://raw.githubusercontent.com/anthropics/skills/main/skills/frontend-design/LICENSE.txt\" -o ~/.claude/skills/frontend-design/LICENSE.txt)",
+      "Bash(curl -sL \"https://api.github.com/repos/nextlevelbuilder/ui-ux-pro-max-skill/contents\")",
+      "Bash(curl -sL \"https://raw.githubusercontent.com/nextlevelbuilder/ui-ux-pro-max-skill/main/package.json\")",
+      "Bash(curl -sL \"https://raw.githubusercontent.com/nextlevelbuilder/ui-ux-pro-max-skill/main/skill.json\")",
+      "Bash(curl -sL \"https://raw.githubusercontent.com/nextlevelbuilder/ui-ux-pro-max-skill/main/README.md\")",
+      "Bash(npx --yes ui-ux-pro-max-cli init --ai claude)",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"B2B SaaS insurance certificates fintech professional trustworthy conversion\" --design-system -p \"CertFlow\")",
+      "Bash(npm --version)",
+      "Bash(npx --yes create-next-app@latest . --ts --no-tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm --no-turbopack --yes)",
+      "Bash(npm install:*)"
+    ]
+  }
+}
