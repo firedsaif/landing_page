@@ -15,7 +15,11 @@
       "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"B2B SaaS insurance certificates fintech professional trustworthy conversion\" --design-system -p \"CertFlow\")",
       "Bash(npm --version)",
       "Bash(npx --yes create-next-app@latest . --ts --no-tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm --no-turbopack --yes)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(taskkill //PID 7000 //F)",
+      "Bash(taskkill //PID 13100 //F)"
     ]
   }
 }

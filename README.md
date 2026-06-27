@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CertFlow — waitlist landing page
 
-## Getting Started
+A single-page marketing landing page for CertFlow (instant Certificates of Insurance
+for small US independent P&C agencies). Built with Next.js + the `motion` library.
 
-First, run the development server:
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
+npm run build    # production build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Before you launch — two things to edit
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Connect the email forms.** Both waitlist forms post to a placeholder Formspree
+   endpoint. Replace `REPLACE_ME` with your real Formspree form ID:
+   - `src/components/WaitlistForm.tsx` → `FORMSPREE_ENDPOINT`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   Each submission also sends a `source` field (`hero` or `footer-cta`) so you can
+   tell which form a signup came from.
 
-## Learn More
+2. **Swap the illustrative numbers.** Stats and the sample certificate are realistic
+   placeholders, marked with `EDIT:` comments:
+   - `src/app/page.tsx` → `OUTCOMES` (9 sec / 6+ hrs / 0 / 24-7) and the stat footnote
+   - `src/components/Certificate.tsx` → the sample COI data
+   - `src/app/layout.tsx` → `SITE_URL` for correct metadata/Open Graph
 
-To learn more about Next.js, take a look at the following resources:
+## Where things live
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `src/app/page.tsx` — page content + copy (hero, pain, how-it-works, outcomes, trust, CTA)
+- `src/app/globals.css` — design tokens (color, type, the "form-grid" primitives)
+- `src/components/Certificate.tsx` — the self-filling ACORD-style hero certificate
+- `src/components/WaitlistForm.tsx` — Formspree form, email validation, success state
+- `src/components/Reveal.tsx` — scroll-reveal wrapper (respects reduced motion)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Notes
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Email is validated client-side; submit shows a loading → success/error state and
+  clears the input on success.
+- All animations honor `prefers-reduced-motion`.
+- Responsive across 375 / 768 / 1024 / 1440px.
