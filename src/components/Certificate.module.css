@@ -250,6 +250,16 @@
   }
 }
 
+/* Hide GSAP-animated pieces before hydration so there's no flash.
+   Only when motion is allowed; reduced motion shows them immediately. */
+@media (prefers-reduced-motion: no-preference) {
+  .card,
+  .chip,
+  .stamp {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dot {
     animation: none;

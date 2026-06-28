@@ -1,48 +1,22 @@
-"use client";
-
-import { motion, useReducedMotion } from "motion/react";
 import type { ReactNode } from "react";
 
 type RevealProps = {
   children: ReactNode;
-  /** stagger index — multiplies the delay for sequenced groups */
+  /** kept for call-site compatibility; sequencing is handled by the animator */
   index?: number;
   delay?: number;
-  as?: "div" | "li" | "section";
   className?: string;
-  y?: number;
 };
 
 /**
- * Quiet scroll reveal: fade + short upward translate, once.
- * Honors prefers-reduced-motion by rendering content statically.
+ * Scroll-reveal marker. Renders a plain block tagged with `data-reveal`;
+ * SiteAnimator fades/rises it into view (and staggers grouped siblings).
+ * Initial hidden state is set in CSS so there's no pre-hydration flash.
  */
-export default function Reveal({
-  children,
-  index = 0,
-  delay = 0,
-  className,
-  y = 18,
-}: RevealProps) {
-  const reduce = useReducedMotion();
-
-  if (reduce) {
-    return <div className={className}>{children}</div>;
-  }
-
+export default function Reveal({ children, className }: RevealProps) {
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{
-        duration: 0.5,
-        delay: delay + index * 0.07,
-        ease: [0.22, 1, 0.36, 1],
-      }}
-    >
+    <div className={className} data-reveal>
       {children}
-    </motion.div>
+    </div>
   );
 }

@@ -2,6 +2,7 @@ import styles from "./page.module.css";
 import Certificate from "@/components/Certificate";
 import WaitlistForm from "@/components/WaitlistForm";
 import Reveal from "@/components/Reveal";
+import SiteAnimator from "@/components/SiteAnimator";
 import {
   IconClock,
   IconAlert,
@@ -81,8 +82,8 @@ const TRUST = [
 
 export default function Home() {
   return (
-    <>
-      <header className={styles.header}>
+    <SiteAnimator>
+      <header className={styles.header} data-site-header>
         <div className={`wrap ${styles.headerInner}`}>
           <a href="#top" className={styles.brand} aria-label="CertFlow home">
             <span className={styles.brandMark} aria-hidden="true">
@@ -106,44 +107,34 @@ export default function Home() {
         {/* ---------------- HERO ---------------- */}
         <section className={styles.hero}>
           <div className={`wrap ${styles.heroGrid}`}>
-            <div className={styles.heroCopy}>
-              <Reveal>
-                <span className="eyebrow is-blue">For independent P&amp;C agencies</span>
-              </Reveal>
-              <Reveal delay={0.05}>
-                <h1 className={`h-display ${styles.h1}`}>
-                  Stop typing certificates of insurance by hand.
-                </h1>
-              </Reveal>
-              <Reveal delay={0.12}>
-                <p className="lead">
-                  CertFlow lets your clients self-serve their COIs in seconds. The
-                  correct additional-insured wording fills in automatically, and every
-                  certificate re-issues itself at renewal — so your account managers
-                  stop retyping ACORD forms all day.
-                </p>
-              </Reveal>
-              <Reveal delay={0.18}>
-                <div className={styles.heroForm}>
-                  <WaitlistForm source="hero" cta="Get early access" />
-                </div>
-              </Reveal>
-              <Reveal delay={0.24}>
-                <ul className={styles.heroProof}>
-                  <li>
-                    <IconCheck width={17} height={17} /> Free during early access
-                  </li>
-                  <li>
-                    <IconCheck width={17} height={17} /> Keep your carriers &amp; wording
-                  </li>
-                  <li>
-                    <IconCheck width={17} height={17} /> No setup project
-                  </li>
-                </ul>
-              </Reveal>
+            <div className={styles.heroCopy} data-hero>
+              <span className="eyebrow is-blue">For independent P&amp;C agencies</span>
+              <h1 className={`h-display ${styles.h1}`}>
+                Stop typing certificates of insurance by hand.
+              </h1>
+              <p className="lead">
+                CertFlow lets your clients self-serve their COIs in seconds. The
+                correct additional-insured wording fills in automatically, and every
+                certificate re-issues itself at renewal — so your account managers
+                stop retyping ACORD forms all day.
+              </p>
+              <div className={styles.heroForm}>
+                <WaitlistForm source="hero" cta="Get early access" />
+              </div>
+              <ul className={styles.heroProof}>
+                <li>
+                  <IconCheck width={17} height={17} /> Free during early access
+                </li>
+                <li>
+                  <IconCheck width={17} height={17} /> Keep your carriers &amp; wording
+                </li>
+                <li>
+                  <IconCheck width={17} height={17} /> No setup project
+                </li>
+              </ul>
             </div>
 
-            <div className={styles.heroArt}>
+            <div className={styles.heroArt} data-hero-art>
               <Certificate />
             </div>
           </div>
@@ -225,7 +216,13 @@ export default function Home() {
               {OUTCOMES.map((o, i) => (
                 <Reveal key={o.label} index={i}>
                   <div className={styles.stat}>
-                    <div className={`mono ${styles.statNum}`}>{o.num}</div>
+                    <div
+                      className={`mono ${styles.statNum}`}
+                      data-stat-num
+                      data-full={o.num}
+                    >
+                      {o.num}
+                    </div>
                     <div className={styles.statLabel}>{o.label}</div>
                   </div>
                 </Reveal>
@@ -314,6 +311,6 @@ export default function Home() {
           <span className="mono">Not affiliated with ACORD.</span>
         </div>
       </footer>
-    </>
+    </SiteAnimator>
   );
 }

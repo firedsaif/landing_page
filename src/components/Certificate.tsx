@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
-import type { ReactNode } from "react";
+import { useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import styles from "./Certificate.module.css";
+
+gsap.registerPlugin(useGSAP);
 
 /* EDIT: sample certificate data — purely illustrative. */
 const HOLDER = "City of Austin — Public Works";
@@ -20,74 +22,126 @@ const COVERAGES = [
 const ISSUED_DATE = "06/26/2026";
 const EXP_DATE = "01/01/2027";
 
-function Cell({
-  children,
-  order,
-  reduce,
-  className = "",
-}: {
-  children: ReactNode;
-  order: number;
-  reduce: boolean | null;
-  className?: string;
-}) {
-  return (
-    <motion.div
-      className={`${styles.cell} ${className}`}
-      initial={reduce ? false : { opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        duration: 0.4,
-        delay: reduce ? 0 : 0.25 + order * 0.09,
-        ease: [0.22, 1, 0.36, 1],
-      }}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
 export default function Certificate() {
-  const reduce = useReducedMotion();
-  const [typed, setTyped] = useState(reduce ? ADDITIONAL_INSURED : "");
-  const [stamped, setStamped] = useState(reduce ? true : false);
-  const startedRef = useRef(false);
+  const scope = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (reduce || startedRef.current) return;
-    startedRef.current = true;
+  useGSAP(
+    () => {
+      const root = scope.current;
+      if (!root) return;
+      const ai = root.querySelector<HTMLElement>("[data-ai]");
+      const caret = root.querySelector<HTMLElement>("[data-caret]");
 
-    // Typewriter begins after the fields have staggered in (~1.1s).
-    const startDelay = 1100;
-    let i = 0;
-    let interval: ReturnType<typeof setInterval>;
+      const mm = gsap.matchMedia();
+      mm.add(
+        {
+          animate: "(prefers-reduced-motion: no-preference)",
+          reduce: "(prefers-reduced-motion: reduce)",
+        },
+        (ctx) => {
+          const { animate } = ctx.conditions as {
+            animate: boolean;
+            reduce: boolean;
+          };
 
-    const startTimer = setTimeout(() => {
-      interval = setInterval(() => {
-        i += 1;
-        setTyped(ADDITIONAL_INSURED.slice(0, i));
-        if (i >= ADDITIONAL_INSURED.length) {
-          clearInterval(interval);
-          // Stamp lands shortly after the wording completes.
-          setTimeout(() => setStamped(true), 280);
+          // ---- reduced motion: final state, no animation ----
+          if (!animate) {
+            if (ai) ai.textContent = ADDITIONAL_INSURED;
+            if (caret) caret.style.display = "none";
+            gsap.set("[data-card], [data-chip], [data-stamp]", { opacity: 1 });
+            gsap.set("[data-stamp]", { rotate: -11 });
+            return;
+          }
+
+          if (ai) ai.textContent = "";
+          gsap.set("[data-stamp]", { opacity: 0, scale: 1.7, rotate: -2 });
+          gsap.set("[data-chip]", { opacity: 0, y: 14 });
+          // autoAlpha (visibility) so the CSS blink animation can't override it
+          gsap.set(caret, { autoAlpha: 0 });
+
+          const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+
+          // card lifts in with a slight 3D tilt settling flat
+          tl.fromTo(
+            "[data-card]",
+            { opacity: 0, y: 26, rotateX: 7, transformPerspective: 900 },
+            { opacity: 1, y: 0, rotateX: 0, duration: 0.75 }
+          )
+            // form cells cascade
+            .from(
+              "[data-cell]",
+              {
+                opacity: 0,
+                y: 12,
+                duration: 0.45,
+                ease: "power2.out",
+                stagger: 0.08,
+              },
+              "-=0.35"
+            );
+
+          // typewriter fills the additional-insured wording
+          const tw = { i: 0 };
+          tl.to(
+            tw,
+            {
+              i: ADDITIONAL_INSURED.length,
+              duration: ADDITIONAL_INSURED.length * 0.02,
+              ease: "none",
+              onStart: () => gsap.set(caret, { autoAlpha: 1 }),
+              onUpdate: () => {
+                if (ai)
+                  ai.textContent = ADDITIONAL_INSURED.slice(
+                    0,
+                    Math.round(tw.i)
+                  );
+              },
+            },
+            "+=0.15"
+          );
+
+          // the ISSUED stamp lands
+          tl.to(
+            "[data-stamp]",
+            {
+              opacity: 1,
+              scale: 1,
+              rotate: -11,
+              duration: 0.6,
+              ease: "back.out(1.7)",
+              onStart: () => gsap.set(caret, { autoAlpha: 0 }),
+            },
+            "+=0.12"
+          );
+
+          // metric chip floats up
+          tl.to(
+            "[data-chip]",
+            { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
+            "-=0.25"
+          );
+
+          // gentle continuous float once everything has settled
+          tl.to(
+            "[data-card]",
+            {
+              y: -8,
+              duration: 3.2,
+              ease: "sine.inOut",
+              yoyo: true,
+              repeat: -1,
+            },
+            ">"
+          );
         }
-      }, 22);
-    }, startDelay);
-
-    return () => {
-      clearTimeout(startTimer);
-      clearInterval(interval);
-    };
-  }, [reduce]);
+      );
+    },
+    { scope }
+  );
 
   return (
-    <div className={styles.stage} aria-hidden="true">
-      <motion.div
-        className={styles.card}
-        initial={reduce ? false : { opacity: 0, y: 24, rotateX: 6 }}
-        animate={{ opacity: 1, y: 0, rotateX: 0 }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-      >
+    <div className={styles.stage} ref={scope} aria-hidden="true">
+      <div className={styles.card} data-card>
         {/* header */}
         <div className={styles.head}>
           <div>
@@ -101,16 +155,16 @@ export default function Certificate() {
         </div>
 
         <div className={styles.grid}>
-          <Cell reduce={reduce} order={0}>
+          <div className={styles.cell} data-cell>
             <div className="field-label">Insured</div>
             <div className={styles.value}>{INSURED}</div>
-          </Cell>
-          <Cell reduce={reduce} order={1}>
+          </div>
+          <div className={styles.cell} data-cell>
             <div className="field-label">Certificate Holder</div>
             <div className={styles.value}>{HOLDER}</div>
-          </Cell>
+          </div>
 
-          <Cell reduce={reduce} order={2} className={styles.span}>
+          <div className={`${styles.cell} ${styles.span}`} data-cell>
             <div className={styles.coverHead}>
               <span className="field-label">Coverage</span>
               <span className="field-label">Policy No.</span>
@@ -123,58 +177,42 @@ export default function Certificate() {
                 <span className="mono">{c.limit}</span>
               </div>
             ))}
-          </Cell>
+          </div>
 
-          <Cell reduce={reduce} order={3} className={`${styles.span} ${styles.aiCell}`}>
+          <div className={`${styles.cell} ${styles.span} ${styles.aiCell}`} data-cell>
             <div className="field-label">Description of Operations / Additional Insured</div>
             <div className={styles.aiText}>
-              {typed}
-              {!stamped && !reduce && <span className={styles.caret} />}
+              <span data-ai>{ADDITIONAL_INSURED}</span>
+              <span className={styles.caret} data-caret />
             </div>
-          </Cell>
+          </div>
 
-          <Cell reduce={reduce} order={4}>
+          <div className={styles.cell} data-cell>
             <div className="field-label">Issued</div>
             <div className={`${styles.value} mono`}>{ISSUED_DATE}</div>
-          </Cell>
-          <Cell reduce={reduce} order={5}>
+          </div>
+          <div className={styles.cell} data-cell>
             <div className="field-label">Auto-renews</div>
             <div className={`${styles.value} mono`}>{EXP_DATE}</div>
-          </Cell>
+          </div>
         </div>
 
         {/* ISSUED stamp */}
-        {stamped && (
-          <motion.div
-            className={styles.stamp}
-            initial={reduce ? false : { opacity: 0, scale: 1.7, rotate: -2 }}
-            animate={{ opacity: 1, scale: 1, rotate: -11 }}
-            transition={
-              reduce
-                ? { duration: 0 }
-                : { type: "spring", mass: 0.7, damping: 11, stiffness: 220 }
-            }
-          >
-            <span className={styles.stampLabel}>Issued</span>
-            <span className={styles.stampDate}>{ISSUED_DATE}</span>
-          </motion.div>
-        )}
-      </motion.div>
+        <div className={styles.stamp} data-stamp>
+          <span className={styles.stampLabel}>Issued</span>
+          <span className={styles.stampDate}>{ISSUED_DATE}</span>
+        </div>
+      </div>
 
       {/* "seconds, not hours" caption tile floating at corner */}
-      <motion.div
-        className={styles.chip}
-        initial={reduce ? false : { opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: reduce ? 0 : 1.9, duration: 0.5 }}
-      >
+      <div className={styles.chip} data-chip>
         <span className={styles.chipNum}>9s</span>
         <span className={styles.chipLabel}>
           request → issued
           <br />
           no retyping
         </span>
-      </motion.div>
+      </div>
     </div>
   );
 }

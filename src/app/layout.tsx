@@ -3,6 +3,9 @@ import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import Backdrop from "@/components/Backdrop";
 
+// With JS off, GSAP never runs — reveal everything that CSS pre-hides.
+const NOSCRIPT_FALLBACK = `[data-site-header],[data-hero]>*,[data-reveal]{opacity:1!important}`;
+
 const plexSans = IBM_Plex_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
@@ -56,6 +59,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`}>
       <body>
+        <noscript>
+          <style dangerouslySetInnerHTML={{ __html: NOSCRIPT_FALLBACK }} />
+        </noscript>
         <Backdrop />
         {children}
       </body>

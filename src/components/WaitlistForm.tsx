@@ -1,8 +1,11 @@
 "use client";
 
-import { useId, useState } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { useId, useRef, useState } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import styles from "./WaitlistForm.module.css";
+
+gsap.registerPlugin(useGSAP);
 
 /* EDIT: replace REPLACE_ME with your Formspree form ID. */
 const FORMSPREE_ENDPOINT = "https://formspree.io/f/mnjkdbag";
@@ -26,10 +29,26 @@ export default function WaitlistForm({
   cta = "Join the waitlist",
 }: Props) {
   const id = useId();
-  const reduce = useReducedMotion();
+  const scope = useRef<HTMLDivElement>(null);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
+
+  // Animate the success panel in when it replaces the form.
+  useGSAP(
+    () => {
+      if (status !== "success") return;
+      gsap.matchMedia().add("(prefers-reduced-motion: no-preference)", () => {
+        gsap.from("[data-success]", {
+          opacity: 0,
+          y: 10,
+          duration: 0.4,
+          ease: "power3.out",
+        });
+      });
+    },
+    { scope, dependencies: [status] }
+  );
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -75,38 +94,29 @@ export default function WaitlistForm({
   const isDark = variant === "dark";
 
   return (
-    <div className={`${styles.root} ${isDark ? styles.dark : styles.light}`}>
-      <AnimatePresence mode="wait" initial={false}>
-        {status === "success" ? (
-          <motion.div
-            key="success"
-            role="status"
-            aria-live="polite"
-            className={styles.success}
-            initial={reduce ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <span className={styles.successMark} aria-hidden="true">
-              <Check />
-            </span>
-            <div>
-              <p className={styles.successTitle}>You’re on the list.</p>
-              <p className={styles.successBody}>
-                We’ll be in touch — keep an eye on your inbox.
-              </p>
-            </div>
-          </motion.div>
-        ) : (
-          <motion.form
-            key="form"
-            className={styles.form}
-            onSubmit={handleSubmit}
-            noValidate
-            initial={false}
-            exit={reduce ? undefined : { opacity: 0, y: -6 }}
-            transition={{ duration: 0.2 }}
-          >
+    <div
+      className={`${styles.root} ${isDark ? styles.dark : styles.light}`}
+      ref={scope}
+    >
+      {status === "success" ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className={styles.success}
+          data-success
+        >
+          <span className={styles.successMark} aria-hidden="true">
+            <Check />
+          </span>
+          <div>
+            <p className={styles.successTitle}>You’re on the list.</p>
+            <p className={styles.successBody}>
+              We’ll be in touch — keep an eye on your inbox.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <form className={styles.form} onSubmit={handleSubmit} noValidate>
             <div className={styles.row}>
               <label htmlFor={`${id}-email`} className="sr-only">
                 Work email
@@ -154,9 +164,8 @@ export default function WaitlistForm({
                 </span>
               )}
             </div>
-          </motion.form>
-        )}
-      </AnimatePresence>
+        </form>
+      )}
     </div>
   );
 }
